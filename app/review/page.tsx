@@ -46,7 +46,10 @@ export default function ReviewPage() {
 
   return (
     <div className="space-y-5">
-      <Panel title="Targets and commitments">
+      <Panel
+        title="Your plan"
+        hint="The mix you want, how much cash you have, and money you know you need soon."
+      >
         <TargetsPanel
           view={{
             targets: state.targets,
@@ -61,33 +64,33 @@ export default function ReviewPage() {
       </Panel>
 
       <Panel
-        title="Active flags"
-        right={<span className="label">Thresholds live in lib/constants.ts</span>}
+        title="Things to look at"
+        hint="Each one shows the numbers behind it, why it matters, and a question for you."
       >
         <FlagsPanel flags={open} />
       </Panel>
 
       <Panel
-        title="Recently resolved"
+        title="Recently handled"
         right={
           <Link href="/history" className="label no-underline hover:underline">
-            Full flag history →
+            See everything →
           </Link>
         }
       >
         {recentlyResolved.length === 0 ? (
-          <p className="label py-4 text-center">Nothing resolved yet.</p>
+          <p className="label py-4 text-center">Nothing handled yet.</p>
         ) : (
           <ul className="space-y-2">
             {recentlyResolved.map((f) => (
-              <li key={f.id} className="border-b border-chart-rule/60 pb-2 last:border-0">
+              <li key={f.id} className="border-b border-line/60 pb-2 last:border-0">
                 <div className="flex items-baseline gap-2">
                   <span className="label whitespace-nowrap">
                     {f.resolved_at?.slice(0, 10)} · {f.rule}
                   </span>
                   <span className="font-sans text-sm">{f.title}</span>
                 </div>
-                <p className="prose-chart mt-0.5 max-w-prose text-chart-ink/75">
+                <p className="prose-chart mt-0.5 max-w-prose text-ink/75">
                   {f.resolution_note}
                 </p>
               </li>

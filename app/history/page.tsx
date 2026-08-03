@@ -45,49 +45,51 @@ export default function HistoryPage() {
   return (
     <div className="space-y-5">
       <Panel
-        title="Portfolio value"
-        right={<span className="label">{snapshots.length} snapshots</span>}
+        title="How your money has moved"
+        hint="The green line is what you own today. The dashed line is what you put in."
       >
         <ValueChart points={points} />
       </Panel>
 
-      <Panel title="Tier allocation over time">
+      <Panel
+        title="Your mix over time"
+        hint="How much of your money sat in safe, balanced and risky holdings each week."
+      >
         <AllocationChart points={points} />
       </Panel>
 
       <Panel
-        title="Every flag ever raised"
+        title="Everything that was ever flagged"
         right={
           <span className="label">
-            {all.length} total · {resolved.length} resolved · {open} open
+            {all.length} total · {resolved.length} handled · {open} still open
           </span>
         }
       >
-        <p className="prose-chart mb-3 max-w-prose text-chart-ink/70">
-          This table is the honest one. It is here so you can see whether you followed through on
-          what you wrote, or whether you dismissed things. A resolution note that says nothing is
-          itself a finding.
+        <p className="hint mb-4 max-w-prose">
+          This is the honest table. It shows whether you actually did what you said you would, or
+          just clicked the thing away. A note that says nothing is itself worth noticing.
         </p>
 
         {all.length === 0 ? (
-          <p className="label py-6 text-center">No flags have ever been raised.</p>
+          <p className="label py-6 text-center">Nothing has ever been flagged.</p>
         ) : (
           <table className="grid-table">
             <thead>
               <tr>
-                <th>Raised</th>
-                <th>Rule</th>
-                <th>Sev</th>
-                <th>What was flagged</th>
-                <th>Resolved</th>
-                <th>How I resolved it</th>
+                <th>Date</th>
+                <th>Check</th>
+                <th></th>
+                <th>What it said</th>
+                <th>Handled</th>
+                <th>What you decided</th>
               </tr>
             </thead>
             <tbody>
               {all.map((f) => (
                 <tr key={f.id}>
                   <td className="num whitespace-nowrap text-2xs">{f.raised_at.slice(0, 10)}</td>
-                  <td className="font-mono text-2xs">{f.rule}</td>
+                  <td className="text-2xs text-muted">{f.rule}</td>
                   <td>
                     <SeverityMark severity={f.severity} />
                   </td>
@@ -96,7 +98,7 @@ export default function HistoryPage() {
                     {f.resolved_at ? (
                       f.resolved_at.slice(0, 10)
                     ) : (
-                      <span className="label-strong" style={{ color: '#A72F6E' }}>
+                      <span className="label-strong" style={{ color: '#FF5A47' }}>
                         open
                       </span>
                     )}
@@ -111,14 +113,14 @@ export default function HistoryPage() {
         )}
       </Panel>
 
-      <Panel title="Snapshots">
+      <Panel title="Week by week" hint="A record of your total each time the app checked.">
         <table className="grid-table">
           <thead>
             <tr>
-              <th>Taken</th>
-              <th className="text-right">Value</th>
-              <th className="text-right">Basis</th>
-              <th className="text-right">Unrealized</th>
+              <th>Date</th>
+              <th className="text-right">Total</th>
+              <th className="text-right">You paid</th>
+              <th className="text-right">Up / down</th>
             </tr>
           </thead>
           <tbody>
@@ -134,7 +136,7 @@ export default function HistoryPage() {
                   <td className="num text-right">{money(s.total_basis)}</td>
                   <td
                     className="num text-right"
-                    style={{ color: unreal >= 0 ? '#2E7159' : '#A72F6E' }}
+                    style={{ color: unreal >= 0 ? '#00C805' : '#FF5A47' }}
                   >
                     {unreal >= 0 ? '+' : ''}
                     {money(unreal)}

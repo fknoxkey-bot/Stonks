@@ -1,79 +1,98 @@
 import type { ReactNode } from 'react';
 import type { Severity, Tier } from '@/lib/types';
-import { TIER_LABEL } from '@/lib/types';
+import { TIER_NAME, TIER_HELP, SEVERITY_PLAIN } from '@/lib/plain';
 
+/**
+ * Tiers run cool → warm → hot. Deliberately not green/red — those belong to
+ * gain and loss, and "risky" must never be readable as "losing money".
+ */
 export const TIER_HEX: Record<Tier, string> = {
-  low: '#2E7159',
-  med: '#B87A22',
-  high: '#A72F6E',
+  low: '#4DABF7',
+  med: '#FFB020',
+  high: '#F06595',
 };
 
 export const SEVERITY_HEX: Record<Severity, string> = {
-  low: '#12313C',
-  med: '#B87A22',
-  high: '#A72F6E',
+  low: '#98A1AE',
+  med: '#FFB020',
+  high: '#FF5A47',
 };
+
+export const UP = '#00C805';
+export const DOWN = '#FF5A47';
 
 export function Label({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`label ${className}`}>{children}</div>;
 }
 
-/** A titled block with a hairline border. The only container in the app. */
+/** A one-line plain-English explainer. Used under headings and labels. */
+export function Hint({ children }: { children: ReactNode }) {
+  return <p className="hint mt-1 max-w-prose">{children}</p>;
+}
+
+/** The one container in the app. */
 export function Panel({
   title,
+  hint,
   right,
   children,
   className = '',
 }: {
   title?: string;
+  hint?: string;
   right?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
   return (
-    <section className={`panel ${className}`}>
+    <section className={`card ${className}`}>
       {(title || right) && (
-        <header className="flex items-center justify-between border-b border-chart-rule px-3 py-2">
-          <h2 className="label-strong">{title}</h2>
+        <header className="flex flex-wrap items-start justify-between gap-2 px-5 pt-4">
+          <div>
+            <h2 className="label-strong">{title}</h2>
+            {hint && <Hint>{hint}</Hint>}
+          </div>
           {right}
         </header>
       )}
-      <div className="px-3 py-3">{children}</div>
+      <div className="px-5 pb-5 pt-4">{children}</div>
     </section>
   );
 }
 
-/** A small colour chip plus the tier's name. Used everywhere a tier appears. */
+/** Coloured dot plus the tier's plain name. Native tooltip carries the detail. */
 export function TierMark({ tier, showLabel = true }: { tier: Tier; showLabel?: boolean }) {
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+    <span
+      className="inline-flex items-center gap-2 whitespace-nowrap"
+      title={`${TIER_NAME[tier]} — ${TIER_HELP[tier]}`}
+    >
       <span
         aria-hidden
-        className="inline-block h-2 w-2 shrink-0"
+        className="inline-block h-2 w-2 shrink-0 rounded-full"
         style={{ backgroundColor: TIER_HEX[tier] }}
       />
-      {showLabel && (
-        <span className="font-mono text-2xs uppercase tracking-annotation">{TIER_LABEL[tier]}</span>
-      )}
+      {showLabel && <span className="text-2xs font-medium">{TIER_NAME[tier]}</span>}
     </span>
   );
 }
 
+/** "Look now" / "Worth a look" / "Minor" rather than HIGH/MED/LOW. */
 export function SeverityMark({ severity }: { severity: Severity }) {
   return (
     <span
-      className="inline-block border px-1.5 py-0.5 font-mono text-2xs uppercase tracking-annotation"
-      style={{ color: SEVERITY_HEX[severity], borderColor: SEVERITY_HEX[severity] }}
+      className="inline-block whitespace-nowrap rounded-full px-2.5 py-1 text-2xs font-semibold"
+      style={{
+        color: SEVERITY_HEX[severity],
+        backgroundColor: `${SEVERITY_HEX[severity]}1F`,
+      }}
     >
-      {severity}
+      {SEVERITY_PLAIN[severity] ?? severity}
     </span>
   );
 }
 
-/**
- * The "not configured" state. Every AI feature degrades to this rather than
- * crashing — a missing key is a normal condition, not an error.
- */
+/** The "not configured" state — a normal condition, not an error. */
 export function NotConfigured({
   what,
   envVar,
@@ -84,12 +103,12 @@ export function NotConfigured({
   children?: ReactNode;
 }) {
   return (
-    <div className="panel border-dashed px-3 py-4">
-      <Label>Not configured</Label>
+    <div className="rounded-lg border border-dashed border-line px-5 py-4">
+      <Label>Not set up yet</Label>
       <p className="prose-chart mt-2 max-w-prose">
-        {what} needs <code className="font-mono text-xs">{envVar}</code> in{' '}
-        <code className="font-mono text-xs">.env.local</code>. Everything that does not depend on it
-        — positions, prices, rules, flags, history — works exactly as before.
+        {what} needs a key called <code>{envVar}</code> in the file{' '}
+        <code>.env.local</code>. Everything else — your holdings, prices, the checks and their
+        history — works exactly as before without it.
       </p>
       {children}
     </div>
@@ -97,15 +116,23 @@ export function NotConfigured({
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <p className="label py-6 text-center">{children}</p>;
+  return <p className="label py-8 text-center">{children}</p>;
 }
 
-/** Signed number, coloured by direction, monospace, tabular. */
-export function Delta({ value, format }: { value: number | null; format: (n: number) => string }) {
-  if (value === null) return <span className="num text-chart-ink/40">—</span>;
-  const colour = value > 0 ? TIER_HEX.low : value < 0 ? TIER_HEX.high : undefined;
+/** Signed figure, green up, red down. */
+export function Delta({
+  value,
+  format,
+  className = '',
+}: {
+  value: number | null;
+  format: (n: number) => string;
+  className?: string;
+}) {
+  if (value === null) return <span className="num text-dim">—</span>;
+  const colour = value > 0 ? UP : value < 0 ? DOWN : undefined;
   return (
-    <span className="num" style={colour ? { color: colour } : undefined}>
+    <span className={`num ${className}`} style={colour ? { color: colour } : undefined}>
       {value > 0 ? '+' : ''}
       {format(value)}
     </span>

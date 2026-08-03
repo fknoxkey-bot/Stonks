@@ -9,8 +9,9 @@ import type { Tier } from '@/lib/types';
 import { TIERS, TIER_LABEL } from '@/lib/types';
 import { TIER_HEX } from './ui';
 
-const INK = '#12313C';
-const RULE = '#C3CFC9';
+const INK = '#F2F4F7';
+const AXIS = '#98A1AE';
+const RULE = '#262A31';
 
 /**
  * The value chart's y-axis starts at zero.
@@ -83,11 +84,10 @@ function Frame({
           <text
             x={W - PAD.right + 6}
             y={y(v) + 3}
-            fill={INK}
-            fillOpacity={0.55}
+            fill={AXIS}
+            fillOpacity={1}
             fontSize={10}
-            fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-            letterSpacing="0.08em"
+            fontFamily="inherit"
           >
             {yFormat(v)}
           </text>
@@ -99,7 +99,7 @@ function Frame({
         x2={W - PAD.right}
         y1={H - PAD.bottom}
         y2={H - PAD.bottom}
-        stroke={INK}
+        stroke={RULE}
         strokeWidth={1}
       />
       {[t0, t1].map((t, i) => (
@@ -108,11 +108,10 @@ function Frame({
           x={i === 0 ? PAD.left : W - PAD.right}
           y={H - PAD.bottom + 14}
           textAnchor={i === 0 ? 'start' : 'end'}
-          fill={INK}
-          fillOpacity={0.55}
+          fill={AXIS}
+          fillOpacity={1}
           fontSize={10}
-          fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-          letterSpacing="0.08em"
+          fontFamily="inherit"
         >
           {dateLabel(t)}
         </text>
@@ -145,10 +144,10 @@ export function ValueChart({ points }: { points: SeriesPoint[] }) {
     <div>
       <Frame points={points} yMax={yMax} yMin={yMin} yFormat={shortMoney}>
         <path d={path('basis')} fill="none" stroke={INK} strokeOpacity={0.35} strokeDasharray="3 3" strokeWidth={1} />
-        <path d={path('value')} fill="none" stroke={INK} strokeWidth={1.5} />
+        <path d={path('value')} fill="none" stroke="#00C805" strokeWidth={2} strokeLinejoin="round" />
       </Frame>
       <div className="mt-1 flex gap-4">
-        <Key swatch={<span className="inline-block h-px w-4 bg-chart-ink align-middle" />} text="Portfolio value" />
+        <Key swatch={<span className="inline-block h-0.5 w-4 align-middle" style={{ backgroundColor: '#00C805' }} />} text="Portfolio value" />
         <Key
           swatch={
             <span
@@ -208,11 +207,10 @@ export function AllocationChart({ points }: { points: SeriesPoint[] }) {
             <text
               x={W - PAD.right + 6}
               y={y(p) + 3}
-              fill={INK}
-              fillOpacity={0.55}
+              fill={AXIS}
+              fillOpacity={1}
               fontSize={10}
-              fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-              letterSpacing="0.08em"
+              fontFamily="inherit"
             >
               {p}%
             </text>
@@ -228,11 +226,10 @@ export function AllocationChart({ points }: { points: SeriesPoint[] }) {
             x={i === 0 ? PAD.left : W - PAD.right}
             y={H - PAD.bottom + 14}
             textAnchor={i === 0 ? 'start' : 'end'}
-            fill={INK}
-            fillOpacity={0.55}
+            fill={AXIS}
+            fillOpacity={1}
             fontSize={10}
-            fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-            letterSpacing="0.08em"
+            fontFamily="inherit"
           >
             {dateLabel(t)}
           </text>
@@ -252,7 +249,7 @@ export function AllocationChart({ points }: { points: SeriesPoint[] }) {
           />
         ))}
         <Key
-          swatch={<span className="inline-block h-2 w-2 border border-chart-rule align-middle" />}
+          swatch={<span className="inline-block h-2 w-2 border border-line align-middle" />}
           text="CASH — the unfilled remainder"
         />
       </div>

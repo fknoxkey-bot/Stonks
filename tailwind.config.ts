@@ -1,10 +1,12 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * Marine chart aesthetic.
- * Chart-paper ground, navy ink, hairline rules. No gradients, no shadows,
- * nothing rounder than 2px. Monospace for every number and label; a clean
- * sans for prose only.
+ * Dark, quiet, legible. Near-black page, slightly lifted cards, one hairline
+ * colour, and a small set of accents that each mean exactly one thing.
+ *
+ * Gain/loss own green and red. Tiers deliberately do NOT use green or red —
+ * they run cool → warm → hot (blue, amber, pink), so "this holding is risky"
+ * can never be misread as "this holding is losing money".
  */
 const config: Config = {
   content: [
@@ -15,50 +17,48 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        chart: {
-          paper: '#E9EDE9',
-          ink: '#12313C',
-          rule: '#C3CFC9',
-        },
+        bg: '#0A0B0D',
+        surface: '#14161A',
+        'surface-2': '#1C1F26',
+        line: '#262A31',
+        'line-soft': '#1B1F25',
+        ink: '#F2F4F7',
+        muted: '#98A1AE',
+        dim: '#5F6773',
+
+        up: '#00C805',
+        down: '#FF5A47',
+
         tier: {
-          low: '#2E7159', // preservation
-          med: '#B87A22', // diversified
-          high: '#A72F6E', // speculative
+          low: '#4DABF7',
+          med: '#FFB020',
+          high: '#F06595',
         },
       },
       fontFamily: {
-        mono: [
-          'ui-monospace',
-          'SFMono-Regular',
-          'SF Mono',
-          'Menlo',
-          'Consolas',
-          'Liberation Mono',
-          'monospace',
-        ],
         sans: [
-          'ui-sans-serif',
-          'system-ui',
           '-apple-system',
+          'BlinkMacSystemFont',
+          'Inter',
           'Segoe UI',
           'Helvetica Neue',
           'Arial',
           'sans-serif',
         ],
+        mono: ['ui-monospace', 'SFMono-Regular', 'SF Mono', 'Menlo', 'monospace'],
       },
       borderRadius: {
-        none: '0',
-        DEFAULT: '2px',
-        sm: '2px',
-        md: '2px',
-        lg: '2px',
-      },
-      letterSpacing: {
-        label: '0.08em',
-        annotation: '0.12em',
+        DEFAULT: '8px',
+        sm: '6px',
+        md: '8px',
+        lg: '12px',
+        xl: '16px',
       },
       fontSize: {
         '2xs': ['0.6875rem', { lineHeight: '1rem' }],
+      },
+      letterSpacing: {
+        label: '0.04em',
       },
     },
   },

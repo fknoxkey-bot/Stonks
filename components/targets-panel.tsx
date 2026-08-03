@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { NearTerm, Tier } from '@/lib/types';
-import { TIERS, TIER_LABEL } from '@/lib/types';
+import { TIERS } from '@/lib/types';
+import { TIER_NAME, TIER_HELP } from '@/lib/plain';
 import { TIER_HEX } from './ui';
 
 const money = (n: number) =>
@@ -53,8 +54,8 @@ export function TargetsPanel({ view }: { view: TargetsView }) {
     <div className="space-y-5">
       {error && (
         <div
-          className="panel px-3 py-2 font-mono text-xs"
-          style={{ borderColor: '#A72F6E', color: '#A72F6E' }}
+          className="card px-3 py-2 font-mono text-xs"
+          style={{ borderColor: '#FF5A47', color: '#FF5A47' }}
         >
           {error}
         </div>
@@ -64,12 +65,12 @@ export function TargetsPanel({ view }: { view: TargetsView }) {
         <table className="grid-table">
           <thead>
             <tr>
-              <th>Tier</th>
-              <th className="text-right">Value</th>
-              <th className="text-right">Actual</th>
-              <th className="text-right">Target</th>
-              <th className="text-right">Drift</th>
-              <th>Band</th>
+              <th>Type</th>
+              <th className="text-right">You have</th>
+              <th className="text-right">% now</th>
+              <th className="text-right">% you want</th>
+              <th className="text-right">Off by</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -79,15 +80,13 @@ export function TargetsPanel({ view }: { view: TargetsView }) {
               return (
                 <tr key={t}>
                   <td>
-                    <span className="inline-flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-2" title={TIER_HELP[t]}>
                       <span
                         aria-hidden
-                        className="inline-block h-2 w-2"
+                        className="inline-block h-2 w-2 rounded-full"
                         style={{ backgroundColor: TIER_HEX[t] }}
                       />
-                      <span className="font-mono text-2xs uppercase tracking-annotation">
-                        {TIER_LABEL[t]}
-                      </span>
+                      <span className="text-sm font-medium">{TIER_NAME[t]}</span>
                     </span>
                   </td>
                   <td className="num text-right">{money(view.values[t])}</td>
@@ -102,7 +101,7 @@ export function TargetsPanel({ view }: { view: TargetsView }) {
                   </td>
                   <td
                     className="num text-right"
-                    style={over ? { color: '#A72F6E' } : { color: 'rgba(18,49,60,0.5)' }}
+                    style={{ color: over ? '#FF5A47' : '#98A1AE' }}
                   >
                     {drift >= 0 ? '+' : ''}
                     {drift.toFixed(1)}
@@ -136,18 +135,18 @@ export function TargetsPanel({ view }: { view: TargetsView }) {
               })
             }
           >
-            Save targets
+            Save
           </button>
-          <span className="label" style={sum !== 100 ? { color: '#B87A22' } : undefined}>
-            Targets sum to {sum.toFixed(1)}%
-            {sum !== 100 && ' — the remainder is treated as a cash target.'}
+          <span className="label" style={sum !== 100 ? { color: '#FFB020' } : undefined}>
+            Adds up to {sum.toFixed(1)}%
+            {sum !== 100 && ' — whatever is left over is your cash target.'}
           </span>
         </div>
       </div>
 
-      <div className="grid gap-5 border-t border-chart-rule pt-4 lg:grid-cols-2">
+      <div className="grid gap-5 border-t border-line pt-4 lg:grid-cols-2">
         <div>
-          <div className="label-strong mb-2">Uninvested cash</div>
+          <div className="label-strong mb-2">Cash not invested</div>
           <div className="flex items-end gap-2">
             <input
               className="num w-40"
@@ -163,14 +162,14 @@ export function TargetsPanel({ view }: { view: TargetsView }) {
               Save
             </button>
           </div>
-          <p className="prose-chart mt-2 max-w-prose text-chart-ink/70">
-            Counts toward the portfolio total for weighting, and toward what is available to meet
-            near-term needs.
+          <p className="hint mt-2 max-w-prose">
+            Money sitting in the account. It counts toward your totals, and toward what you could
+            reach without having to sell anything.
           </p>
         </div>
 
         <div>
-          <div className="label-strong mb-2">Near-term needs</div>
+          <div className="label-strong mb-2">Money you need soon</div>
           <table className="grid-table">
             <thead>
               <tr>
@@ -184,7 +183,7 @@ export function TargetsPanel({ view }: { view: TargetsView }) {
               {view.nearTerm.length === 0 && (
                 <tr>
                   <td colSpan={4} className="label py-3">
-                    Nothing committed.
+                    Nothing yet. Add anything you know you will need to pay for.
                   </td>
                 </tr>
               )}
@@ -255,13 +254,13 @@ export function TargetsPanel({ view }: { view: TargetsView }) {
 function DriftBar({ actual, target, tier }: { actual: number; target: number; tier: Tier }) {
   const scale = Math.max(100, actual, target);
   return (
-    <div className="relative h-3 w-full min-w-[120px] border border-chart-rule">
+    <div className="relative h-3 w-full min-w-[120px] border border-line">
       <div
         className="absolute inset-y-0 left-0"
         style={{ width: `${(actual / scale) * 100}%`, backgroundColor: TIER_HEX[tier], opacity: 0.35 }}
       />
       <div
-        className="absolute inset-y-0 w-px bg-chart-ink"
+        className="absolute inset-y-0 w-px bg-ink"
         style={{ left: `${(target / scale) * 100}%` }}
         title={`target ${target}%`}
       />

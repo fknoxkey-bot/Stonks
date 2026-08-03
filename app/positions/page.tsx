@@ -1,11 +1,11 @@
-import { buildPortfolioState } from '@/lib/queries';
+import Link from 'next/link';
+import { buildPortfolioState, listFlags } from '@/lib/queries';
 import {
   drawdownPct,
   effectiveValue,
   isOpen,
   money,
   openPositions,
-  pct,
   positionWeight,
   priceAgeDays,
   realizedPL,
@@ -15,7 +15,7 @@ import {
 import { STALE_PRICE_DAYS } from '@/lib/constants';
 import { anyPriceProviderConfigured } from '@/lib/prices';
 import { PositionsTable, type PositionRow } from '@/components/positions-table';
-import { Label, Panel } from '@/components/ui';
+import { Panel, UP, DOWN } from '@/components/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,66 +52,113 @@ export default function PositionsPage() {
   const total = totalValue(state);
   const basis = totalBasis(state);
   const unrealized = total - state.cash - basis;
+  const pctChange = basis > 0 ? (unrealized / basis) * 100 : 0;
+  const up = unrealized >= 0;
   const staleCount = rows.filter((r) => r.stale).length;
+  const openFlags = listFlags({ open: true });
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-px border border-chart-rule bg-chart-rule sm:grid-cols-3 lg:grid-cols-6">
-        <Stat label="Portfolio value" value={money(total)} />
-        <Stat label="Cost basis" value={money(basis)} />
+      {/* The one number that matters, the way a phone app would show it. */}
+      <section className="pb-1 pt-2">
+        <div className="label">Everything you own</div>
+        <div className="num mt-1 text-5xl font-semibold tracking-tight">{money(total)}</div>
+        <div className="num mt-2 text-sm font-medium" style={{ color: up ? UP : DOWN }}>
+          {up ? '▲' : '▼'} {money(Math.abs(unrealized))} ({Math.abs(pctChange).toFixed(2)}%)
+          <span className="ml-2 font-normal text-muted">{up ? 'up' : 'down'} on what you paid</span>
+        </div>
+        <p className="hint mt-3 max-w-prose">
+          That is profit on paper. It only becomes real money when you sell — until then it can go
+          back down just as easily.
+        </p>
+      </section>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat
-          label="Unrealized"
-          value={`${unrealized >= 0 ? '+' : ''}${money(unrealized)}`}
-          tone={unrealized >= 0 ? '#2E7159' : '#A72F6E'}
+          label="You paid, in total"
+          value={money(basis)}
+          help="Sum of what every holding cost you."
         />
         <Stat
-          label="Return on basis"
-          value={basis > 0 ? pct((unrealized / basis) * 100) : '—'}
-          tone={unrealized >= 0 ? '#2E7159' : '#A72F6E'}
+          label="Cash not invested"
+          value={money(state.cash)}
+          help="Sitting in the account doing nothing."
         />
-        <Stat label="Cash" value={money(state.cash)} />
-        <Stat label="Open positions" value={String(openPositions(state).length)} />
+        <Stat
+          label="Holdings"
+          value={String(openPositions(state).length)}
+          help="Different things you own."
+        />
+        <Stat
+          label="Things to look at"
+          value={String(openFlags.length)}
+          help="Checks that want your attention."
+          href="/review"
+          tone={openFlags.length > 0 ? '#FFB020' : undefined}
+        />
       </div>
 
       {!anyPriceProviderConfigured() && (
-        <div className="panel border-dashed px-3 py-3">
-          <Label>No market data provider configured</Label>
-          <p className="prose-chart mt-1 max-w-prose">
-            Set <code className="font-mono text-xs">FINNHUB_API_KEY</code> in{' '}
-            <code className="font-mono text-xs">.env.local</code> to fetch prices. Until then
-            positions are valued at cost basis, and every rule that does not need a live price still
-            runs.
+        <div className="rounded-lg border border-dashed border-line px-5 py-4">
+          <div className="label-strong">Prices aren&apos;t updating automatically</div>
+          <p className="hint mt-1 max-w-prose">
+            Right now each holding is valued at what you paid for it, so the numbers above will not
+            move on their own. A free key from finnhub.io fixes that — or you can type prices in by
+            hand.
           </p>
         </div>
       )}
 
       {staleCount > 0 && (
-        <div className="panel px-3 py-2" style={{ borderColor: '#B87A22' }}>
-          <span className="label-strong" style={{ color: '#B87A22' }}>
-            {staleCount} position{staleCount === 1 ? ' has' : 's have'} a price older than{' '}
-            {STALE_PRICE_DAYS} days
-          </span>
-          <p className="prose-chart mt-1 max-w-prose">
-            Those rows are marked below. Weights and returns involving them are provisional — they
-            are not being shown to you as current.
+        <div className="rounded-lg px-5 py-4" style={{ backgroundColor: 'rgba(255,176,32,0.09)' }}>
+          <div className="label-strong" style={{ color: '#FFB020' }}>
+            {staleCount === 1 ? 'One price is' : `${staleCount} prices are`} more than{' '}
+            {STALE_PRICE_DAYS} days old
+          </div>
+          <p className="hint mt-1 max-w-prose">
+            Those rows are marked below. We are showing the last price we managed to get, not a
+            current one — so treat those totals as rough.
           </p>
         </div>
       )}
 
-      <Panel title="Positions">
+      <Panel
+        title="Your holdings"
+        hint="Click a ticker to see why you bought it and what would change your mind."
+      >
         <PositionsTable rows={rows} staleDays={STALE_PRICE_DAYS} />
       </Panel>
     </div>
   );
 }
 
-function Stat({ label, value, tone }: { label: string; value: string; tone?: string }) {
-  return (
-    <div className="bg-chart-paper px-3 py-2">
+function Stat({
+  label,
+  value,
+  help,
+  tone,
+  href,
+}: {
+  label: string;
+  value: string;
+  help: string;
+  tone?: string;
+  href?: string;
+}) {
+  const body = (
+    <div className="card h-full px-4 py-3 transition-colors hover:border-line">
       <div className="label">{label}</div>
-      <div className="num mt-0.5 text-lg" style={tone ? { color: tone } : undefined}>
+      <div className="num mt-1 text-xl font-semibold" style={tone ? { color: tone } : undefined}>
         {value}
       </div>
+      <p className="hint mt-1">{help}</p>
     </div>
+  );
+  return href ? (
+    <Link href={href} className="block">
+      {body}
+    </Link>
+  ) : (
+    body
   );
 }

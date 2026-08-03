@@ -38,7 +38,7 @@ export default async function BriefsPage({
   return (
     <div className="space-y-5">
       <Panel
-        title="Brief"
+        title="Research"
         right={
           <span className="label">
             {ANTHROPIC_MODEL} · effort {ANTHROPIC_EFFORT}
@@ -71,7 +71,7 @@ export default async function BriefsPage({
           <BriefBody row={selected} />
         </Panel>
       ) : (
-        <Panel title="No briefs yet">
+        <Panel title="Nothing generated yet">
           <p className="prose-chart max-w-prose">
             Nothing has been generated. Every brief that ever runs is kept here permanently,
             including the ones that fail — so that in six months you can count how often this thing
@@ -81,8 +81,8 @@ export default async function BriefsPage({
       )}
 
       <Panel
-        title="Brief archive"
-        right={<span className="label">{all.length} stored · never pruned</span>}
+        title="Everything ever generated"
+        hint="Kept forever, including the ones that got it wrong — so you can judge whether it is worth listening to."
       >
         {all.length === 0 ? (
           <p className="label py-4 text-center">Empty.</p>
@@ -90,8 +90,8 @@ export default async function BriefsPage({
           <table className="grid-table">
             <thead>
               <tr>
-                <th>Generated</th>
-                <th>Kind</th>
+                <th>Date</th>
+                <th>Type</th>
                 <th>Status</th>
                 <th>Model</th>
                 <th className="text-right">Sources</th>
@@ -112,12 +112,12 @@ export default async function BriefsPage({
                     <td className="label-strong">{b.kind}</td>
                     <td>
                       {b.status === 'ok' ? (
-                        <span className="label-strong" style={{ color: '#2E7159' }}>
-                          validated
+                        <span className="label-strong" style={{ color: '#00C805' }}>
+                          looks good
                         </span>
                       ) : (
-                        <span className="label-strong" style={{ color: '#A72F6E' }}>
-                          schema error
+                        <span className="label-strong" style={{ color: '#FF5A47' }}>
+                          failed checks
                         </span>
                       )}
                     </td>

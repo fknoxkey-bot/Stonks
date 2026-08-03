@@ -3,32 +3,31 @@
 @tailwind utilities;
 
 /*
- * Marine chart aesthetic. Chart-paper ground, navy ink, hairline rules.
- * Monospace for every number and label, set uppercase and letterspaced like
- * chart annotations. A clean sans for prose only.
+ * Dark, simple, clean. One typeface, generous spacing, soft corners, almost no
+ * borders — depth comes from surfaces sitting slightly above the page rather
+ * than from lines drawn around things.
  *
- * No gradients, no shadows, nothing rounder than 2px. This is an instrument.
+ * Numbers are tabular everywhere so columns line up without a monospace face.
  */
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
   }
 
   html,
   body {
-    background-color: #e9ede9;
-    color: #12313c;
+    background-color: #0a0b0d;
+    color: #f2f4f7;
   }
 
   body {
     -webkit-font-smoothing: antialiased;
-    font-feature-settings: 'tnum' 1;
+    text-rendering: optimizeLegibility;
   }
 
   ::selection {
-    background-color: #12313c;
-    color: #e9ede9;
+    background-color: rgba(0, 200, 5, 0.25);
   }
 
   input,
@@ -42,86 +41,117 @@
   input,
   select,
   textarea {
-    @apply border border-chart-rule bg-transparent px-2 py-1 outline-none;
-    border-radius: 2px;
+    @apply w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-ink outline-none transition-colors;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-dim;
   }
 
   input:focus,
   select:focus,
   textarea:focus {
-    @apply border-chart-ink;
+    @apply border-up/60;
   }
 
   a {
-    @apply underline decoration-chart-rule underline-offset-2;
+    @apply text-ink no-underline transition-colors;
   }
 
   a:hover {
-    @apply decoration-chart-ink;
+    @apply text-up;
+  }
+
+  /* Scrollbars that don't glare on a dark page. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #262a31;
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #343a43;
   }
 }
 
 @layer components {
-  /* A chart annotation: small, uppercase, letterspaced, monospace. */
+  /* Small caption above a value. Sentence case, not shouting. */
   .label {
-    @apply font-mono text-2xs uppercase tracking-annotation text-chart-ink/55;
+    @apply text-2xs font-medium tracking-label text-muted;
   }
 
   .label-strong {
-    @apply font-mono text-2xs uppercase tracking-annotation text-chart-ink;
+    @apply text-sm font-semibold text-ink;
   }
 
-  /* Every number in the app. Tabular figures so columns line up. */
+  /* Every figure in the app. Tabular so columns align. */
   .num {
-    @apply font-mono tabular-nums;
+    @apply tabular-nums;
+    font-variant-numeric: tabular-nums;
   }
 
-  .rule {
-    @apply border-chart-rule;
-  }
-
-  .panel {
-    @apply border border-chart-rule;
-    border-radius: 2px;
+  /* The one container. Sits above the page; no heavy border. */
+  .card {
+    @apply rounded-lg border border-line-soft bg-surface;
   }
 
   .btn {
-    @apply border border-chart-ink px-2 py-1 font-mono text-2xs uppercase tracking-annotation;
-    border-radius: 2px;
+    @apply inline-flex items-center justify-center rounded-md bg-up px-4 py-2 text-sm font-semibold text-black transition-opacity;
   }
 
   .btn:hover:not(:disabled) {
-    @apply bg-chart-ink text-chart-paper;
+    @apply opacity-85;
   }
 
   .btn:disabled {
-    @apply cursor-not-allowed border-chart-rule text-chart-ink/40;
+    @apply cursor-not-allowed bg-surface-2 text-dim;
   }
 
   .btn-quiet {
-    @apply border border-chart-rule px-2 py-1 font-mono text-2xs uppercase tracking-annotation text-chart-ink/70;
-    border-radius: 2px;
+    @apply inline-flex items-center justify-center rounded-md border border-line bg-transparent px-3 py-2 text-sm font-medium text-muted transition-colors;
   }
 
   .btn-quiet:hover:not(:disabled) {
-    @apply border-chart-ink text-chart-ink;
+    @apply border-line bg-surface-2 text-ink;
   }
 
-  /* Dense data table. Hairlines only, no zebra striping, no hover fills. */
+  .btn-quiet:disabled {
+    @apply cursor-not-allowed text-dim opacity-50;
+  }
+
+  .btn-ghost {
+    @apply rounded-md px-2 py-1 text-2xs font-medium text-muted transition-colors;
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    @apply bg-surface-2 text-ink;
+  }
+
+  /* Data table: no vertical rules, one soft horizontal separator. */
   .grid-table {
     @apply w-full border-collapse text-sm;
   }
 
   .grid-table th {
-    @apply border-b border-chart-rule px-2 py-1.5 text-left font-mono text-2xs font-normal uppercase tracking-annotation text-chart-ink/55;
+    @apply px-3 py-2 text-left text-2xs font-medium tracking-label text-muted;
   }
 
   .grid-table td {
-    @apply border-b border-chart-rule/60 px-2 py-1.5 align-top;
+    @apply border-t border-line-soft px-3 py-3 align-middle;
+  }
+
+  .grid-table tbody tr:hover td {
+    @apply bg-surface-2/40;
   }
 
   .prose-chart {
-    @apply font-sans text-sm leading-relaxed;
+    @apply text-sm leading-relaxed text-ink/90;
   }
 
   .prose-chart p {
@@ -129,11 +159,11 @@
   }
 
   .prose-chart h2 {
-    @apply mb-2 mt-6 font-mono text-2xs uppercase tracking-annotation text-chart-ink;
+    @apply mb-2 mt-8 text-sm font-semibold text-ink;
   }
 
   .prose-chart h3 {
-    @apply mb-1 mt-4 font-sans text-base font-semibold;
+    @apply mb-1 mt-5 text-base font-semibold text-ink;
   }
 
   .prose-chart ul {
@@ -141,10 +171,19 @@
   }
 
   .prose-chart li {
-    @apply mb-1;
+    @apply mb-1.5;
   }
 
   .prose-chart code {
-    @apply font-mono text-xs;
+    @apply rounded-sm bg-surface-2 px-1 py-0.5 font-mono text-xs text-ink;
+  }
+
+  .prose-chart strong {
+    @apply font-semibold text-ink;
+  }
+
+  /* A short, plain-English explainer under a heading. */
+  .hint {
+    @apply text-2xs leading-relaxed text-muted;
   }
 }

@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Tier } from '@/lib/types';
-import { TIER_LABEL, TIERS } from '@/lib/types';
+import { TIERS } from '@/lib/types';
+import { TIER_NAME, TIER_HELP } from '@/lib/plain';
 import { Delta, Empty, TierMark } from './ui';
 
 export interface PositionRow {
@@ -158,8 +159,8 @@ export function PositionsTable({ rows, staleDays }: { rows: PositionRow[]; stale
 
       {error && (
         <div
-          className="panel px-3 py-2 font-mono text-xs"
-          style={{ borderColor: '#A72F6E', color: '#A72F6E' }}
+          className="card px-3 py-2 font-mono text-xs"
+          style={{ borderColor: '#FF5A47', color: '#FF5A47' }}
         >
           {error}
         </div>
@@ -179,15 +180,15 @@ export function PositionsTable({ rows, staleDays }: { rows: PositionRow[]; stale
       <table className="grid-table">
         <thead>
           <tr>
-            <th>Ticker</th>
-            <th>Tier</th>
+            <th>Holding</th>
+            <th>Type</th>
             <th className="text-right">Shares</th>
-            <th className="text-right">Basis</th>
-            <th className="text-right">Price</th>
-            <th className="text-right">Value</th>
-            <th className="text-right">Weight</th>
-            <th className="text-right">Unreal.</th>
-            <th className="text-right">vs Cost</th>
+            <th className="text-right">You paid</th>
+            <th className="text-right">Now worth</th>
+            <th className="text-right">Total</th>
+            <th className="text-right">Share</th>
+            <th className="text-right">Up / down</th>
+            <th className="text-right">%</th>
             <th />
           </tr>
         </thead>
@@ -195,7 +196,7 @@ export function PositionsTable({ rows, staleDays }: { rows: PositionRow[]; stale
           {open.length === 0 && (
             <tr>
               <td colSpan={10}>
-                <Empty>No open positions.</Empty>
+                <Empty>Nothing here yet. Add your first holding above.</Empty>
               </td>
             </tr>
           )}
@@ -229,14 +230,14 @@ export function PositionsTable({ rows, staleDays }: { rows: PositionRow[]; stale
       )}
 
       {closingId !== null && (
-        <div className="panel px-3 py-3">
+        <div className="card px-3 py-3">
           <div className="label-strong mb-2">Close position</div>
           <p className="prose-chart mb-3 max-w-prose">
-            Closing records the realized result and keeps the position visible in the table. It does
-            not place an order — this app has no brokerage connection.
+            This records what you sold for and keeps the holding visible in your history. It does not
+            sell anything — this app is not connected to a broker.
           </p>
           <div className="flex flex-wrap items-end gap-2">
-            <Field label="Proceeds per share">
+            <Field label="What you sold it for, per share">
               <input
                 className="num w-36"
                 value={closePrice}
@@ -255,16 +256,16 @@ export function PositionsTable({ rows, staleDays }: { rows: PositionRow[]; stale
       )}
 
       <section>
-        <div className="label-strong mb-2">Closed positions</div>
+        <div className="label-strong mb-2">Sold</div>
         <table className="grid-table">
           <thead>
             <tr>
-              <th>Ticker</th>
-              <th>Tier</th>
+              <th>Holding</th>
+              <th>Type</th>
               <th className="text-right">Shares</th>
-              <th className="text-right">Basis</th>
-              <th className="text-right">Exit</th>
-              <th className="text-right">Realized P/L</th>
+              <th className="text-right">You paid</th>
+              <th className="text-right">Sold at</th>
+              <th className="text-right">Actual profit</th>
               <th>Closed</th>
               <th />
             </tr>
@@ -273,7 +274,7 @@ export function PositionsTable({ rows, staleDays }: { rows: PositionRow[]; stale
             {closed.length === 0 && (
               <tr>
                 <td colSpan={8}>
-                  <Empty>Nothing closed yet.</Empty>
+                  <Empty>You have not sold anything yet.</Empty>
                 </td>
               </tr>
             )}
@@ -281,7 +282,7 @@ export function PositionsTable({ rows, staleDays }: { rows: PositionRow[]; stale
               <tr key={r.id}>
                 <td className="font-mono">{r.ticker}</td>
                 <td>
-                  <TierMark tier={r.tier} showLabel={false} />
+                  <TierMark tier={r.tier} />
                 </td>
                 <td className="num text-right">{r.shares}</td>
                 <td className="num text-right">{money(r.cost_basis)}</td>
@@ -337,18 +338,18 @@ function PositionRowView({
           {r.name && <div className="label mt-0.5">{r.name}</div>}
         </td>
         <td>
-          <TierMark tier={r.tier} showLabel={false} />
+          <TierMark tier={r.tier} />
         </td>
         <td className="num text-right">{r.shares}</td>
         <td className="num text-right">{money(r.cost_basis)}</td>
         <td className="text-right">
           {r.price === null ? (
-            <span className="label">never priced</span>
+            <span className="label">no price yet</span>
           ) : (
             <>
               <span className="num">{money(r.price)}</span>
               {r.stale && (
-                <div className="label" style={{ color: '#B87A22' }}>
+                <div className="label" style={{ color: '#FFB020' }}>
                   {r.ageDays === null ? 'no date' : `${Math.floor(r.ageDays)}d old`} · &gt;{staleDays}d
                 </div>
               )}
@@ -357,7 +358,7 @@ function PositionRowView({
         </td>
         <td className="num text-right">
           {money(r.value)}
-          {r.price === null && <div className="label">at cost</div>}
+          {r.price === null && <div className="label">estimated</div>}
         </td>
         <td className="num text-right">{pct(r.weight)}</td>
         <td className="text-right">
@@ -377,14 +378,14 @@ function PositionRowView({
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={10} className="bg-chart-ink/[0.03]">
+          <td colSpan={10} className="bg-ink/[0.03]">
             <div className="grid gap-4 py-1 md:grid-cols-2">
               <div>
-                <div className="label mb-1">Thesis</div>
+                <div className="label mb-1">Why you bought it</div>
                 <p className="prose-chart">{r.thesis}</p>
               </div>
               <div>
-                <div className="label mb-1">Invalidation — what would prove me wrong</div>
+                <div className="label mb-1">What would prove you wrong</div>
                 <p className="prose-chart">{r.invalidation}</p>
               </div>
             </div>
@@ -427,7 +428,7 @@ function DraftForm({
   const missingInvalidation = !draft.invalidation.trim();
 
   return (
-    <div className="panel px-3 py-3">
+    <div className="card px-3 py-3">
       <div className="label-strong mb-3">{heading}</div>
       <div className="grid gap-3 md:grid-cols-4">
         <Field label="Ticker">
@@ -452,7 +453,7 @@ function DraftForm({
           >
             {TIERS.map((t) => (
               <option key={t} value={t}>
-                {TIER_LABEL[t]}
+                {TIER_NAME[t]}
               </option>
             ))}
           </select>
@@ -466,7 +467,7 @@ function DraftForm({
               onChange={(e) => set('shares', e.target.value)}
             />
           </Field>
-          <Field label="Cost basis">
+          <Field label="Price you paid">
             <input
               className="num w-full"
               inputMode="decimal"
@@ -478,26 +479,28 @@ function DraftForm({
       </div>
 
       <div className="mt-3 grid gap-3 md:grid-cols-2">
-        <Field label="Thesis — why do you own this?">
+        <Field label="Why did you buy it?">
           <textarea
             className="h-24 w-full"
             value={draft.thesis}
             onChange={(e) => set('thesis', e.target.value)}
           />
         </Field>
-        <Field label="Invalidation — what would prove you wrong? (required)">
+        <Field label="What would prove you wrong? (required)">
           <textarea
             className="h-24 w-full"
-            style={missingInvalidation ? { borderColor: '#A72F6E' } : undefined}
+            style={missingInvalidation ? { borderColor: '#FF5A47' } : undefined}
             value={draft.invalidation}
             onChange={(e) => set('invalidation', e.target.value)}
           />
         </Field>
       </div>
 
-      <p className="prose-chart mt-2 max-w-prose text-chart-ink/70">
-        A position without a written invalidation cannot be exited on evidence, only on emotion.
-        This field is required, and the database will refuse the row without it.
+      <p className="prose-chart mt-2 max-w-prose text-ink/70">
+        Not &quot;if it drops&quot; — something real and checkable, like &quot;if they lose their
+        biggest customer&quot; or &quot;if the fee goes above 0.10%&quot;. Without this, the only
+        thing left to sell on is panic. It is required, and it is the most useful thing on this
+        page.
       </p>
 
       <div className="mt-3 flex gap-2">
