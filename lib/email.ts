@@ -8,11 +8,10 @@
  */
 import { Resend } from 'resend';
 import type { WeeklyBrief } from './validators';
+import { env, hasEnv, requireEnv } from './env';
 
 export function isEmailConfigured(): boolean {
-  return Boolean(
-    process.env.RESEND_API_KEY && process.env.BRIEF_FROM_EMAIL && process.env.BRIEF_TO_EMAIL,
-  );
+  return hasEnv('RESEND_API_KEY') && hasEnv('BRIEF_FROM_EMAIL') && hasEnv('BRIEF_TO_EMAIL');
 }
 
 const INK = '#12313C';
@@ -181,13 +180,13 @@ export async function sendBriefEmail(
     };
   }
 
-  const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
+  const appUrl = env('APP_URL', 'http://localhost:3000');
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY!);
+    const resend = new Resend(requireEnv('RESEND_API_KEY'));
     const { error } = await resend.emails.send({
-      from: process.env.BRIEF_FROM_EMAIL!,
-      to: process.env.BRIEF_TO_EMAIL!,
+      from: requireEnv('BRIEF_FROM_EMAIL'),
+      to: requireEnv('BRIEF_TO_EMAIL'),
       subject: `Weekly review — ${generatedAt.slice(0, 10)}`,
       html: renderBriefEmail(brief, generatedAt, appUrl),
       text: renderBriefText(brief, generatedAt),

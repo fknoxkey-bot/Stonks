@@ -16,6 +16,7 @@
  */
 import { insertPrice, latestPrice } from './queries';
 import { PRICE_CACHE_TTL_MS, PRICE_NEGATIVE_CACHE_TTL_MS } from './constants';
+import { envRaw, hasEnv } from './env';
 
 export type QuoteFailure =
   | 'not_configured'
@@ -47,8 +48,8 @@ const negativeCache = new Map<string, number>();
 
 export function priceProvidersConfigured(): { finnhub: boolean; alphaVantage: boolean } {
   return {
-    finnhub: Boolean(process.env.FINNHUB_API_KEY),
-    alphaVantage: Boolean(process.env.ALPHA_VANTAGE_API_KEY),
+    finnhub: hasEnv('FINNHUB_API_KEY'),
+    alphaVantage: hasEnv('ALPHA_VANTAGE_API_KEY'),
   };
 }
 
@@ -82,7 +83,7 @@ interface FinnhubQuote {
 }
 
 async function fetchFinnhub(ticker: string): Promise<QuoteResult> {
-  const key = process.env.FINNHUB_API_KEY;
+  const key = envRaw('FINNHUB_API_KEY');
   if (!key) {
     return { ok: false, ticker, reason: 'not_configured', message: 'FINNHUB_API_KEY is not set.' };
   }
@@ -136,7 +137,7 @@ async function fetchFinnhub(ticker: string): Promise<QuoteResult> {
  * ------------------------------------------------------------------ */
 
 async function fetchAlphaVantage(ticker: string): Promise<QuoteResult> {
-  const key = process.env.ALPHA_VANTAGE_API_KEY;
+  const key = envRaw('ALPHA_VANTAGE_API_KEY');
   if (!key) {
     return {
       ok: false,

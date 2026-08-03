@@ -4,6 +4,7 @@ import { buildPortfolioState, syncFlags, takeSnapshot } from '@/lib/queries';
 import { evaluateAll } from '@/lib/rules';
 import { weeklyBriefSchema } from '@/lib/validators';
 import { fail, handleError, ok } from '@/lib/api';
+import { envRaw } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 600;
@@ -17,7 +18,7 @@ export const maxDuration = 600;
  * and a deployed instance is not left open.
  */
 function authorised(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
+  const secret = envRaw('CRON_SECRET');
   const header = req.headers.get('authorization') ?? '';
 
   if (secret) return header === `Bearer ${secret}`;

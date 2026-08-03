@@ -16,6 +16,7 @@
  */
 import Anthropic from '@anthropic-ai/sdk';
 import type { PortfolioState } from './types';
+import { hasEnv, requireEnv } from './env';
 import { TIER_LABEL } from './types';
 import { ANTHROPIC_EFFORT, ANTHROPIC_MODEL, GAP_MIN_FIELD_LENGTH, RULES } from './constants';
 import {
@@ -37,13 +38,11 @@ import {
 } from './validators';
 
 export function isAnthropicConfigured(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY);
+  return hasEnv('ANTHROPIC_API_KEY');
 }
 
 function client(): Anthropic {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set.');
-  return new Anthropic({ apiKey });
+  return new Anthropic({ apiKey: requireEnv('ANTHROPIC_API_KEY') });
 }
 
 export interface GenerationResult<T> {

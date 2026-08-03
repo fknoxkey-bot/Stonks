@@ -10,9 +10,10 @@
  */
 import 'dotenv/config';
 import cron from 'node-cron';
+import { env, envRaw } from '../lib/env';
 
-const APP_URL = process.env.APP_URL ?? 'http://localhost:3000';
-const SCHEDULE = process.env.CRON_SCHEDULE ?? '0 18 * * 0'; // Sunday 18:00
+const APP_URL = env('APP_URL', 'http://localhost:3000');
+const SCHEDULE = env('CRON_SCHEDULE', '0 18 * * 0'); // Sunday 18:00
 
 async function fire(): Promise<void> {
   const started = new Date();
@@ -21,8 +22,8 @@ async function fire(): Promise<void> {
   try {
     const res = await fetch(`${APP_URL}/api/cron/weekly`, {
       method: 'POST',
-      headers: process.env.CRON_SECRET
-        ? { Authorization: `Bearer ${process.env.CRON_SECRET}` }
+      headers: envRaw('CRON_SECRET')
+        ? { Authorization: `Bearer ${envRaw('CRON_SECRET')}` }
         : {},
     });
     const body = await res.text();
