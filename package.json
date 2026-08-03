@@ -22,7 +22,7 @@
     "@mdx-js/loader": "^3.1.0",
     "@mdx-js/react": "^3.1.0",
     "@next/mdx": "^15.1.6",
-    "better-sqlite3": "^11.8.1",
+    "better-sqlite3": "^13.0.2",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -30,7 +30,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.12",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/mdx": "^2.0.13",
     "@types/node": "^22.10.7",
     "@types/node-cron": "^3.0.11",
