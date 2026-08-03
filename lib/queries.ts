@@ -157,6 +157,24 @@ export function latestPrices(): Map<string, PriceRow> {
   return new Map(rows.map((r) => [r.ticker.toUpperCase(), r]));
 }
 
+/**
+ * Most recent price per ticker *as of* a point in time. Used for backfilling
+ * history; the live path deliberately uses the unbounded `latestPrices` so a
+ * provider timestamp that lands slightly in the future cannot make a position
+ * appear unpriced.
+ */
+export function latestPricesAsOf(asOf: Date): Map<string, PriceRow> {
+  const rows = getDb()
+    .prepare(
+      `SELECT p.* FROM prices p
+        JOIN (SELECT ticker, MAX(as_of) AS as_of FROM prices WHERE as_of <= ? GROUP BY ticker) m
+          ON p.ticker = m.ticker AND p.as_of = m.as_of
+        GROUP BY p.ticker`,
+    )
+    .all(asOf.toISOString()) as PriceRow[];
+  return new Map(rows.map((r) => [r.ticker.toUpperCase(), r]));
+}
+
 export function priceHistory(ticker: string, limit = 500): PriceRow[] {
   return getDb()
     .prepare('SELECT * FROM prices WHERE ticker = ? ORDER BY as_of DESC LIMIT ?')
@@ -234,6 +252,24 @@ export function buildPortfolioState(now: Date = new Date()): PortfolioState {
     nearTerm: listNearTerm(),
     cash: getCash(),
     now,
+  };
+}
+
+/**
+ * The portfolio as it stood on a past date: only positions already open then,
+ * priced with the most recent quote available at that time. Used to backfill
+ * snapshots so the history charts show real movement rather than today's
+ * numbers repeated backwards.
+ */
+export function buildStateAsOf(asOf: Date): PortfolioState {
+  const asOfIso = asOf.toISOString();
+  const positions = listPositions(true).filter((p) => p.opened_at <= asOfIso);
+  return {
+    positions: pricePositions(positions, latestPricesAsOf(asOf)),
+    targets: listTargets(),
+    nearTerm: listNearTerm(),
+    cash: getCash(),
+    now: asOf,
   };
 }
 
