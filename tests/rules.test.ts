@@ -458,6 +458,15 @@ describe('horizonMismatch', () => {
     expect(f.detail.arithmetic).toContain('total = $7,000.00');
   });
 
+  it('renders a need-by as a date, not a timestamp', () => {
+    const s = cleanState({
+      nearTerm: [need(9_000, 'Roof', '2026-12-01T07:40:35.581Z')],
+    });
+    const f = horizonMismatch(s)!;
+    expect(f.detail.arithmetic).toContain('Roof: $9,000.00 by 2026-12-01');
+    expect(f.detail.arithmetic).not.toContain('T07:40:35');
+  });
+
   it('labels an unlabelled need rather than printing an empty string', () => {
     const s = cleanState({ nearTerm: [need(9_000, '')] });
     expect(horizonMismatch(s)!.detail.arithmetic).toContain('unlabelled');

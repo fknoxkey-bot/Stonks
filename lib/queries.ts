@@ -190,7 +190,8 @@ export function listNearTerm(): NearTerm[] {
 export function createNearTerm(amount: number, needBy: string, label: string): NearTerm {
   const info = getDb()
     .prepare('INSERT INTO near_term (amount, need_by, label) VALUES (?, ?, ?)')
-    .run(amount, needBy, label);
+    // A need-by is a day, not a moment — store it that way.
+    .run(amount, needBy.slice(0, 10), label);
   return getDb()
     .prepare('SELECT * FROM near_term WHERE id = ?')
     .get(Number(info.lastInsertRowid)) as NearTerm;

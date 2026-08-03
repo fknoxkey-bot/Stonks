@@ -18,6 +18,7 @@ import { RULES } from './constants';
 import type { PortfolioState, PricedPosition, RuleFlag, Severity } from './types';
 import { TIERS, TIER_LABEL } from './types';
 import {
+  dateOnly,
   drawdownPct,
   effectiveValue,
   money,
@@ -307,7 +308,7 @@ export function horizonMismatch(state: PortfolioState): RuleFlag | null {
 
   const shortfall = need - available;
   const needLines = state.nearTerm.map(
-    (n) => `  ${n.label || 'unlabelled'}: ${money(n.amount)} by ${n.need_by}`,
+    (n) => `  ${n.label || 'unlabelled'}: ${money(n.amount)} by ${dateOnly(n.need_by)}`,
   );
 
   return {

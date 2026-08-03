@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  dateOnly,
   daysBetween,
   drawdownPct,
   effectiveValue,
@@ -183,5 +184,15 @@ describe('realizedPL', () => {
     expect(realizedPL(p)).toBe(300);
     const loss = pos({ shares: 10, cost_basis: 100, closed_at: daysBefore(1), close_price: 60 });
     expect(realizedPL(loss)).toBe(-400);
+  });
+});
+
+describe('dateOnly', () => {
+  it('trims a timestamp to its date', () => {
+    expect(dateOnly('2026-12-01T07:40:35.581Z')).toBe('2026-12-01');
+  });
+
+  it('leaves an already-date-only string alone', () => {
+    expect(dateOnly('2026-12-01')).toBe('2026-12-01');
   });
 });

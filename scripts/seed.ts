@@ -107,7 +107,7 @@ for (const s of seed) {
 
 // Deliberately larger than cash + the preservation tier, so the seeded
 // portfolio demonstrates a high-severity flag rather than only gentle ones.
-createNearTerm(62_000, daysAgo(-120), 'Roof replacement');
+createNearTerm(62_000, daysAgo(-120).slice(0, 10), 'Roof replacement');
 
 // Backfill a few months of snapshots so the history view is not a single dot.
 for (let d = 180; d >= 0; d -= 7) {
