@@ -19,26 +19,45 @@ automatically, and runs a weekly review that surfaces what needs a decision.
 
 ## Setup
 
-Fresh clone to running app, under five minutes:
+You need **Node 20 or newer** — check with `node -v`; if that errors or shows
+something lower, get the LTS installer from [nodejs.org](https://nodejs.org).
+
+Then, from the project folder:
 
 ```bash
-git clone <this repo> && cd Stonks
-npm install
-cp .env.example .env.local      # fill in what you want; all of it is optional
-npm run db:migrate              # creates data/portfolio.db
-npm run db:seed                 # optional — sample portfolio that trips 5 rules
-npm run dev                     # http://localhost:3000
+npm run setup     # installs, creates .env.local, builds the database
+npm run dev       # http://localhost:3000
 ```
 
-The app runs with an empty `.env.local`. Positions, the rules engine, flags,
-snapshots, history and the playbook all work without a single API key. Each
-feature that needs one degrades to a visible "not configured" panel rather than
-crashing.
+That's it. `npm run setup -- --seed` loads a sample portfolio that trips five
+rules if you want something to look at first; `npm run db:reset` wipes it clean
+again.
 
-Requires Node 20+. `better-sqlite3` is a native module and compiles on install.
+Leave the `npm run dev` terminal open — closing it stops the app. Start it
+again the same way.
+
+### If you'd rather not use git
+
+You don't need it. On the GitHub page: **Code → Download ZIP**, then double-click
+the download to unzip it. Open Terminal, type `cd ` (with a space), drag the
+unzipped folder from Finder onto the Terminal window — that fills in the path —
+and press Enter. You're now in the project folder and the two commands above
+work.
+
+### What runs without any API keys
+
+Everything except the AI features. Positions, the rules engine, flags,
+snapshots, history and the playbook all work with a completely empty
+`.env.local`. Each feature that needs a key degrades to a visible "not
+configured" panel rather than crashing.
+
+`better-sqlite3` is a native module and compiles during install. On macOS that
+needs Xcode Command Line Tools; if install fails asking for them, run
+`xcode-select --install` and try again.
 
 | Command | What it does |
 | --- | --- |
+| `npm run setup` | One-command install: dependencies, `.env.local`, database |
 | `npm run dev` | Development server |
 | `npm test` | Vitest with coverage thresholds |
 | `npm run typecheck` | `tsc --noEmit` |

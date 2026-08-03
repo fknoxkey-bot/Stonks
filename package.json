@@ -4,6 +4,7 @@
   "private": true,
   "description": "Single-user portfolio review application. A discipline enforcement tool, not a signal generator.",
   "scripts": {
+    "setup": "node scripts/setup.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
