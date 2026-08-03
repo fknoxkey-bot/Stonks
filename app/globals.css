@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Marine chart aesthetic. Chart-paper ground, navy ink, hairline rules.
+ * Monospace for every number and label, set uppercase and letterspaced like
+ * chart annotations. A clean sans for prose only.
+ *
+ * No gradients, no shadows, nothing rounder than 2px. This is an instrument.
+ */
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html,
+  body {
+    background-color: #e9ede9;
+    color: #12313c;
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  ::selection {
+    background-color: #12313c;
+    color: #e9ede9;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  input,
+  select,
+  textarea {
+    @apply border border-chart-rule bg-transparent px-2 py-1 outline-none;
+    border-radius: 2px;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    @apply border-chart-ink;
+  }
+
+  a {
+    @apply underline decoration-chart-rule underline-offset-2;
+  }
+
+  a:hover {
+    @apply decoration-chart-ink;
+  }
+}
+
+@layer components {
+  /* A chart annotation: small, uppercase, letterspaced, monospace. */
+  .label {
+    @apply font-mono text-2xs uppercase tracking-annotation text-chart-ink/55;
+  }
+
+  .label-strong {
+    @apply font-mono text-2xs uppercase tracking-annotation text-chart-ink;
+  }
+
+  /* Every number in the app. Tabular figures so columns line up. */
+  .num {
+    @apply font-mono tabular-nums;
+  }
+
+  .rule {
+    @apply border-chart-rule;
+  }
+
+  .panel {
+    @apply border border-chart-rule;
+    border-radius: 2px;
+  }
+
+  .btn {
+    @apply border border-chart-ink px-2 py-1 font-mono text-2xs uppercase tracking-annotation;
+    border-radius: 2px;
+  }
+
+  .btn:hover:not(:disabled) {
+    @apply bg-chart-ink text-chart-paper;
+  }
+
+  .btn:disabled {
+    @apply cursor-not-allowed border-chart-rule text-chart-ink/40;
+  }
+
+  .btn-quiet {
+    @apply border border-chart-rule px-2 py-1 font-mono text-2xs uppercase tracking-annotation text-chart-ink/70;
+    border-radius: 2px;
+  }
+
+  .btn-quiet:hover:not(:disabled) {
+    @apply border-chart-ink text-chart-ink;
+  }
+
+  /* Dense data table. Hairlines only, no zebra striping, no hover fills. */
+  .grid-table {
+    @apply w-full border-collapse text-sm;
+  }
+
+  .grid-table th {
+    @apply border-b border-chart-rule px-2 py-1.5 text-left font-mono text-2xs font-normal uppercase tracking-annotation text-chart-ink/55;
+  }
+
+  .grid-table td {
+    @apply border-b border-chart-rule/60 px-2 py-1.5 align-top;
+  }
+
+  .prose-chart {
+    @apply font-sans text-sm leading-relaxed;
+  }
+
+  .prose-chart p {
+    @apply mb-3;
+  }
+
+  .prose-chart h2 {
+    @apply mb-2 mt-6 font-mono text-2xs uppercase tracking-annotation text-chart-ink;
+  }
+
+  .prose-chart h3 {
+    @apply mb-1 mt-4 font-sans text-base font-semibold;
+  }
+
+  .prose-chart ul {
+    @apply mb-3 list-disc pl-5;
+  }
+
+  .prose-chart li {
+    @apply mb-1;
+  }
+
+  .prose-chart code {
+    @apply font-mono text-xs;
+  }
+}
