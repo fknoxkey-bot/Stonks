@@ -51,9 +51,17 @@ snapshots, history and the playbook all work with a completely empty
 `.env.local`. Each feature that needs a key degrades to a visible "not
 configured" panel rather than crashing.
 
-`better-sqlite3` is a native module and compiles during install. On macOS that
-needs Xcode Command Line Tools; if install fails asking for them, run
-`xcode-select --install` and try again.
+`better-sqlite3` is a native module, but v13 ships prebuilt binaries inside the
+npm package for macOS, Linux and Windows, so nothing compiles during install
+and no build tools are required.
+
+### Updating to a newer version
+
+Your portfolio lives in one file: `data/portfolio.db`. Nothing else in the
+folder is yours. To move to a newer version of the code, download it into a
+fresh folder, copy `data/portfolio.db` from the old folder into the new one,
+then run `npm run setup` there — it migrates the database in place and leaves
+your positions alone.
 
 | Command | What it does |
 | --- | --- |
