@@ -110,6 +110,11 @@ export function priceAgeDays(p: PricedPosition, now: Date): number | null {
   return daysBetween(now, asOf);
 }
 
+/** Trims an ISO timestamp to its date. A need-by is a day, not a moment. */
+export function dateOnly(iso: string): string {
+  return iso.slice(0, 10);
+}
+
 export function nearTermTotal(state: PortfolioState): number {
   return state.nearTerm.reduce((sum, n) => sum + n.amount, 0);
 }

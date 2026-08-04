@@ -1,9 +1,10 @@
 import Database from 'better-sqlite3';
+import { env } from './env';
 import fs from 'node:fs';
 import path from 'node:path';
 
 const DB_DIR = path.join(process.cwd(), 'data');
-const DB_PATH = process.env.DATABASE_PATH ?? path.join(DB_DIR, 'portfolio.db');
+const DB_PATH = env('DATABASE_PATH', path.join(DB_DIR, 'portfolio.db'));
 const MIGRATIONS_DIR = path.join(process.cwd(), 'migrations');
 
 let instance: Database.Database | null = null;

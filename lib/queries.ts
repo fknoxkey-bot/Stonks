@@ -14,6 +14,7 @@ import type {
 } from './types';
 import { TIERS } from './types';
 import { pricePositions, openPositions, totalValue, totalBasis, tierValues } from './portfolio';
+import { computeMovers } from './movers';
 
 /* ------------------------------------------------------------------ *
  * positions
@@ -157,6 +158,24 @@ export function latestPrices(): Map<string, PriceRow> {
   return new Map(rows.map((r) => [r.ticker.toUpperCase(), r]));
 }
 
+/**
+ * Most recent price per ticker *as of* a point in time. Used for backfilling
+ * history; the live path deliberately uses the unbounded `latestPrices` so a
+ * provider timestamp that lands slightly in the future cannot make a position
+ * appear unpriced.
+ */
+export function latestPricesAsOf(asOf: Date): Map<string, PriceRow> {
+  const rows = getDb()
+    .prepare(
+      `SELECT p.* FROM prices p
+        JOIN (SELECT ticker, MAX(as_of) AS as_of FROM prices WHERE as_of <= ? GROUP BY ticker) m
+          ON p.ticker = m.ticker AND p.as_of = m.as_of
+        GROUP BY p.ticker`,
+    )
+    .all(asOf.toISOString()) as PriceRow[];
+  return new Map(rows.map((r) => [r.ticker.toUpperCase(), r]));
+}
+
 export function priceHistory(ticker: string, limit = 500): PriceRow[] {
   return getDb()
     .prepare('SELECT * FROM prices WHERE ticker = ? ORDER BY as_of DESC LIMIT ?')
@@ -190,7 +209,8 @@ export function listNearTerm(): NearTerm[] {
 export function createNearTerm(amount: number, needBy: string, label: string): NearTerm {
   const info = getDb()
     .prepare('INSERT INTO near_term (amount, need_by, label) VALUES (?, ?, ?)')
-    .run(amount, needBy, label);
+    // A need-by is a day, not a moment — store it that way.
+    .run(amount, needBy.slice(0, 10), label);
   return getDb()
     .prepare('SELECT * FROM near_term WHERE id = ?')
     .get(Number(info.lastInsertRowid)) as NearTerm;
@@ -234,6 +254,33 @@ export function buildPortfolioState(now: Date = new Date()): PortfolioState {
     cash: getCash(),
     now,
   };
+}
+
+/**
+ * The portfolio as it stood on a past date: only positions already open then,
+ * priced with the most recent quote available at that time. Used to backfill
+ * snapshots so the history charts show real movement rather than today's
+ * numbers repeated backwards.
+ */
+export function buildStateAsOf(asOf: Date): PortfolioState {
+  const asOfIso = asOf.toISOString();
+  const positions = listPositions(true).filter((p) => p.opened_at <= asOfIso);
+  return {
+    positions: pricePositions(positions, latestPricesAsOf(asOf)),
+    targets: listTargets(),
+    nearTerm: listNearTerm(),
+    cash: getCash(),
+    now: asOf,
+  };
+}
+
+/**
+ * Movers for the brief: current holdings against their price N days ago.
+ * The pure computation lives in lib/movers.ts; this only fetches the inputs.
+ */
+export function buildMovers(state: PortfolioState, windowDays: number, minAbsPct: number) {
+  const since = new Date(state.now.getTime() - windowDays * 86_400_000);
+  return computeMovers(state.positions, latestPricesAsOf(since), minAbsPct, state.now);
 }
 
 /* ------------------------------------------------------------------ *

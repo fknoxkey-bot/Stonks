@@ -1,0 +1,83 @@
+Static reference. Nothing on this page is generated, fetched, or updated by
+the app — it is what you decided when you were calm, kept somewhere you can
+re-read it when you are not.
+
+Replace everything below with your own words. What is here is scaffolding
+showing the shape: for each tier, what belongs in it, why it exists, and the
+honest case against it.
+
+## The three tiers
+
+Every position belongs to exactly one tier. The tier is a statement about what
+job the money is doing, not about how much you like the company.
+
+### Preservation
+
+**What belongs here.** Money that has to still be there on a specific date, or
+that exists to be sellable in a month when everything else is down 30%. Short
+and intermediate duration bonds, T-bills, cash equivalents, and equities held
+explicitly for stability rather than growth.
+
+**Why it exists.** It is the only tier that can meet a near-term obligation
+without forcing a sale at whatever price the market is offering that week. It
+is what makes the rest of the portfolio survivable.
+
+**The case against.** It reliably loses to inflation over long horizons, and
+holding a large preservation tier for decades is one of the most expensive
+mistakes available to a young investor. Every dollar here is a dollar not
+compounding. If your near-term needs are small and your horizon is long, a
+large preservation tier is not prudence — it is a fear you have not examined.
+
+### Diversified
+
+**What belongs here.** Broad, boring, low-cost exposure. Total-market index
+funds, global equity, anything where the thesis is "capitalism generally works
+and I do not need to be right about which company."
+
+**Why it exists.** It is the part of the portfolio that does not depend on you
+being right. It should be the default, and anything outside it should have to
+argue why it beats this.
+
+**The case against.** It guarantees you will never beat the market, and it
+quietly imports whatever concentration the index has — a "diversified" total
+market fund can be a third of its weight in a handful of very large companies.
+Diversified is a description of intent, not a guarantee of the outcome. Check
+what is actually inside it.
+
+### Speculative
+
+**What belongs here.** Positions with a specific thesis that could be wrong.
+Individual companies, thematic bets, anything where you are claiming to know
+something.
+
+**Why it exists.** It is where a written thesis and a written invalidation
+condition do actual work. It is also, honestly, where the interest is — and a
+portfolio you find boring is one you will stop maintaining.
+
+**The case against.** Most of these will underperform the diversified tier
+after costs and taxes, and you will remember the winners and forget the
+losers. This tier grows on you when it wins, which is exactly when you least
+want to notice — that is what the `speculativeCreep` rule is for. Size it as
+if you will be wrong about most of it, because you will be.
+
+## The rules that enforce this
+
+The thresholds live in `lib/constants.ts` and nowhere else. Change them there.
+
+| Rule | Fires when |
+| --- | --- |
+| `allocationDrift` | any tier is ≥5 points off its target |
+| `concentration` | any single position is ≥25% of the portfolio |
+| `undocumented` | any position has an empty thesis or invalidation |
+| `stalePrice` | a price is older than 14 days |
+| `drawdownReview` | a position is ≥25% below cost basis |
+| `speculativeCreep` | the speculative tier is >40% of the portfolio |
+| `horizonMismatch` | near-term needs exceed cash plus the preservation tier |
+| `thinPortfolio` | there are fewer than 3 open positions |
+
+## What this app will not do
+
+It has no brokerage connection and cannot place an order. It does not produce
+buy or sell signals. Rules produce flags, flags produce questions, and the
+answers are yours. Every AI-generated brief is stored permanently, including
+the ones that turn out to be wrong, so that in six months you can count.

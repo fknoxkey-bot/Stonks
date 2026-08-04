@@ -12,6 +12,7 @@ import {
   setTarget,
   takeSnapshot,
   buildPortfolioState,
+  buildStateAsOf,
 } from '../lib/queries';
 import { evaluateAll } from '../lib/rules';
 import { syncFlags } from '../lib/queries';
@@ -97,9 +98,11 @@ for (const s of seed) {
     invalidation: s.invalidation,
     opened_at: s.opened_at,
   });
-  // A short synthetic price history so the charts have something to draw.
-  for (let d = 45; d >= s.priceAgeDays; d -= 5) {
-    const drift = 1 + (Math.sin(d / 7) * 0.03 + (45 - d) * 0.0008);
+  // Synthetic price history covering the whole snapshot window, so the charts
+  // draw real movement. Gentle upward drift plus a slow wave — enough to look
+  // like a market, not enough to look like a story.
+  for (let d = 190; d >= s.priceAgeDays; d -= 5) {
+    const drift = 1 - (d - s.priceAgeDays) * 0.0009 + Math.sin(d / 11) * 0.035;
     insertPrice(s.ticker, Number((s.price * drift).toFixed(2)), 'seed', daysAgo(d));
   }
   insertPrice(s.ticker, s.price, 'seed', daysAgo(s.priceAgeDays));
@@ -107,11 +110,14 @@ for (const s of seed) {
 
 // Deliberately larger than cash + the preservation tier, so the seeded
 // portfolio demonstrates a high-severity flag rather than only gentle ones.
-createNearTerm(62_000, daysAgo(-120), 'Roof replacement');
+createNearTerm(62_000, daysAgo(-120).slice(0, 10), 'Roof replacement');
 
-// Backfill a few months of snapshots so the history view is not a single dot.
+// Backfill weekly snapshots using the prices that were actually on file at
+// each date, so the history charts show real movement rather than today's
+// numbers repeated backwards.
 for (let d = 180; d >= 0; d -= 7) {
-  takeSnapshot(buildPortfolioState(new Date(Date.now() - d * 86_400_000)), new Date(Date.now() - d * 86_400_000));
+  const at = new Date(Date.now() - d * 86_400_000);
+  takeSnapshot(buildStateAsOf(at), at);
 }
 
 const state = buildPortfolioState();

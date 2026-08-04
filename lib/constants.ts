@@ -1,4 +1,5 @@
 import type { Severity } from './types';
+import { env } from './env';
 
 /**
  * Every threshold in the rules engine lives here. Change a number in this
@@ -81,10 +82,22 @@ export const STALE_PRICE_DAYS = RULES.stalePrice.days;
  * The model used for briefs and gap analysis. Overridable via env so the
  * choice is not buried in code.
  */
-export const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? 'claude-opus-5';
+export const ANTHROPIC_MODEL = env('ANTHROPIC_MODEL', 'claude-opus-5');
 
 /** Thinking depth for brief generation. */
-export const ANTHROPIC_EFFORT = process.env.ANTHROPIC_EFFORT ?? 'max';
+export const ANTHROPIC_EFFORT = env('ANTHROPIC_EFFORT', 'max');
+
+/**
+ * A holding moving at least this much since last week gets called out in the
+ * brief, with the model asked to explain why and cite it.
+ */
+export const MOVE_ALERT_PCT = 6;
+
+/** How far back the brief compares prices. */
+export const MOVE_WINDOW_DAYS = 7;
+
+/** At most this many ideas per brief. A list you cannot read is not a list. */
+export const MAX_IDEAS_PER_BRIEF = 3;
 
 /** Gap-analysis candidates must argue against themselves at this length. */
 export const GAP_MIN_FIELD_LENGTH = 40;
