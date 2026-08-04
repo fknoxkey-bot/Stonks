@@ -37,9 +37,34 @@ export function WeeklyBriefView({ brief }: { brief: WeeklyBrief }) {
     <div className="space-y-6">
       <p className="prose-chart max-w-prose text-base">{brief.summary}</p>
 
+      {brief.price_moves.length > 0 && (
+        <section>
+          <Label>What moved, and why</Label>
+          <div className="mt-2 space-y-2">
+            {brief.price_moves.map((m, i) => (
+              <div key={i} className="card px-4 py-3">
+                <div className="flex flex-wrap items-baseline gap-3">
+                  <span className="text-sm font-semibold">{m.ticker}</span>
+                  <span
+                    className="num text-sm font-semibold"
+                    style={{ color: m.pct_change >= 0 ? '#00C805' : '#FF5A47' }}
+                  >
+                    {m.pct_change >= 0 ? '▲' : '▼'} {Math.abs(m.pct_change).toFixed(1)}%
+                  </span>
+                  <span className="ml-auto">
+                    <Source url={m.source_url} />
+                  </span>
+                </div>
+                <p className="prose-chart mt-2 max-w-prose">{m.explanation}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* The highest-value section, so it goes first. */}
       <section>
-        <Label>Invalidation checks — has anything matched what I wrote?</Label>
+        <Label>Has anything happened that would prove you wrong?</Label>
         <div className="mt-2 space-y-3">
           {brief.invalidation_checks.length === 0 && (
             <p className="label py-2">No positions to check.</p>
@@ -74,12 +99,12 @@ export function WeeklyBriefView({ brief }: { brief: WeeklyBrief }) {
       </section>
 
       <section>
-        <Label>Macro developments, past 7 days</Label>
+        <Label>What happened in the wider market</Label>
         <table className="grid-table mt-2">
           <thead>
             <tr>
-              <th>Development</th>
-              <th>Data point to watch next</th>
+              <th>What happened</th>
+              <th>What to watch next</th>
               <th>When</th>
               <th>Source</th>
             </tr>
@@ -100,7 +125,7 @@ export function WeeklyBriefView({ brief }: { brief: WeeklyBrief }) {
       </section>
 
       <section>
-        <Label>Already consensus — these offer no edge</Label>
+        <Label>Everyone already knows this — no edge here</Label>
         <ul className="mt-2 space-y-2">
           {brief.already_consensus.length === 0 && (
             <li className="label">Nothing flagged as consensus. Treat that claim with suspicion.</li>
@@ -115,8 +140,53 @@ export function WeeklyBriefView({ brief }: { brief: WeeklyBrief }) {
         </ul>
       </section>
 
+      {brief.ideas.length > 0 && (
+        <section>
+          <Label>Worth researching</Label>
+          <p className="hint mt-1 max-w-prose">
+            Not ranked, not in order of preference, and not a suggestion to buy anything. Each one
+            has to argue against itself before it appears here — read the middle and right columns
+            before the left one.
+          </p>
+          <div className="mt-3 space-y-3">
+            {brief.ideas.map((idea, i) => (
+              <div key={i} className="card px-4 py-3">
+                <div className="flex flex-wrap items-baseline gap-3">
+                  <span className="text-sm font-semibold">{idea.ticker}</span>
+                  <span className="text-sm text-muted">{idea.instrument}</span>
+                  <span className="ml-auto">
+                    <Source url={idea.source_url} />
+                  </span>
+                </div>
+                <p className="hint mt-1">Why now: {idea.why_now}</p>
+                <div className="mt-3 grid gap-4 md:grid-cols-3">
+                  <div>
+                    <div className="label mb-1" style={{ color: '#00C805' }}>
+                      The case for
+                    </div>
+                    <p className="prose-chart">{idea.case_for}</p>
+                  </div>
+                  <div>
+                    <div className="label mb-1" style={{ color: '#FFB020' }}>
+                      The case against
+                    </div>
+                    <p className="prose-chart">{idea.case_against}</p>
+                  </div>
+                  <div>
+                    <div className="label mb-1" style={{ color: '#FF5A47' }}>
+                      Wrong for
+                    </div>
+                    <p className="prose-chart">{idea.wrong_for}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section>
-        <Label>Three questions for me to answer</Label>
+        <Label>Three questions for you to answer</Label>
         <ol className="mt-2 list-decimal space-y-2 pl-5">
           {brief.questions_for_me.map((q, i) => (
             <li key={i} className="prose-chart max-w-prose font-semibold">

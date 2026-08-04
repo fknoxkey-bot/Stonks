@@ -14,6 +14,7 @@ import type {
 } from './types';
 import { TIERS } from './types';
 import { pricePositions, openPositions, totalValue, totalBasis, tierValues } from './portfolio';
+import { computeMovers } from './movers';
 
 /* ------------------------------------------------------------------ *
  * positions
@@ -271,6 +272,15 @@ export function buildStateAsOf(asOf: Date): PortfolioState {
     cash: getCash(),
     now: asOf,
   };
+}
+
+/**
+ * Movers for the brief: current holdings against their price N days ago.
+ * The pure computation lives in lib/movers.ts; this only fetches the inputs.
+ */
+export function buildMovers(state: PortfolioState, windowDays: number, minAbsPct: number) {
+  const since = new Date(state.now.getTime() - windowDays * 86_400_000);
+  return computeMovers(state.positions, latestPricesAsOf(since), minAbsPct, state.now);
 }
 
 /* ------------------------------------------------------------------ *

@@ -52,6 +52,41 @@ const link = (url: string, text?: string) => {
 };
 
 export function renderBriefEmail(brief: WeeklyBrief, generatedAt: string, appUrl: string): string {
+  const moves =
+    brief.price_moves.length === 0
+      ? ''
+      : label('What moved, and why') +
+        brief.price_moves
+          .map(
+            (m) => `
+    <div style="border:1px solid ${RULE};padding:12px;margin-bottom:10px">
+      <span style="font-weight:600;font-size:14px">${escapeHtml(m.ticker)}</span>
+      <span style="font-weight:600;font-size:14px;color:${m.pct_change >= 0 ? '#0A8F04' : '#C4321F'};margin-left:8px">${m.pct_change >= 0 ? '&#9650;' : '&#9660;'} ${Math.abs(m.pct_change).toFixed(1)}%</span>
+      <p style="margin:8px 0 0;font-size:14px;line-height:1.5">${escapeHtml(m.explanation)}</p>
+      <p style="margin:6px 0 0">${link(m.source_url)}</p>
+    </div>`,
+          )
+          .join('');
+
+  const ideas =
+    brief.ideas.length === 0
+      ? ''
+      : label('Worth researching — not ranked, not advice') +
+        brief.ideas
+          .map(
+            (i) => `
+    <div style="border:1px solid ${RULE};padding:12px;margin-bottom:10px">
+      <span style="font-weight:600;font-size:14px">${escapeHtml(i.ticker)}</span>
+      <span style="font-size:14px;opacity:.7;margin-left:8px">${escapeHtml(i.instrument)}</span>
+      <p style="margin:6px 0 0;font-size:13px;opacity:.75">Why now: ${escapeHtml(i.why_now)}</p>
+      <p style="margin:8px 0 0;font-size:14px;line-height:1.5"><strong>For:</strong> ${escapeHtml(i.case_for)}</p>
+      <p style="margin:6px 0 0;font-size:14px;line-height:1.5"><strong>Against:</strong> ${escapeHtml(i.case_against)}</p>
+      <p style="margin:6px 0 0;font-size:14px;line-height:1.5"><strong>Wrong for:</strong> ${escapeHtml(i.wrong_for)}</p>
+      <p style="margin:6px 0 0">${link(i.source_url)}</p>
+    </div>`,
+          )
+          .join('');
+
   const checks = brief.invalidation_checks
     .map(
       (c) => `
@@ -110,13 +145,15 @@ export function renderBriefEmail(brief: WeeklyBrief, generatedAt: string, appUrl
 
     <p style="margin:16px 0 0;font-size:15px;line-height:1.6">${escapeHtml(brief.summary)}</p>
 
-    ${label('Invalidation checks — has anything matched what I wrote?')}
+    ${moves}
+    ${label('Has anything happened that would prove you wrong?')}
     ${checks || '<p style="font-size:14px;opacity:.6">No positions to check.</p>'}
 
     ${label('Three questions to answer')}
     <ol style="margin:0;padding-left:20px">${questions}</ol>
 
-    ${label('Macro developments, past 7 days')}
+    ${ideas}
+    ${label('What happened in the wider market')}
     ${macro || '<p style="font-size:14px;opacity:.6">Nothing recorded.</p>'}
 
     ${label('Already consensus — no edge here')}
@@ -137,6 +174,16 @@ export function renderBriefEmail(brief: WeeklyBrief, generatedAt: string, appUrl
 export function renderBriefText(brief: WeeklyBrief, generatedAt: string): string {
   const lines = [`WEEKLY REVIEW — ${generatedAt.slice(0, 10)}`, '', brief.summary, ''];
 
+  if (brief.price_moves.length > 0) {
+    lines.push('WHAT MOVED');
+    for (const m of brief.price_moves) {
+      lines.push(`  ${m.ticker} ${m.pct_change >= 0 ? '+' : ''}${m.pct_change.toFixed(1)}%`);
+      lines.push(`    ${m.explanation}`);
+      lines.push(`    ${m.source_url}`);
+    }
+    lines.push('');
+  }
+
   lines.push('INVALIDATION CHECKS');
   for (const c of brief.invalidation_checks) {
     lines.push(`  ${c.ticker} [${STATUS_TEXT[c.status]}]`);
@@ -147,6 +194,18 @@ export function renderBriefText(brief: WeeklyBrief, generatedAt: string): string
 
   lines.push('', 'THREE QUESTIONS');
   brief.questions_for_me.forEach((q, i) => lines.push(`  ${i + 1}. ${q}`));
+
+  if (brief.ideas.length > 0) {
+    lines.push('', 'WORTH RESEARCHING (not ranked, not advice)');
+    for (const i of brief.ideas) {
+      lines.push(`  ${i.ticker} — ${i.instrument}`);
+      lines.push(`    why now: ${i.why_now}`);
+      lines.push(`    for: ${i.case_for}`);
+      lines.push(`    against: ${i.case_against}`);
+      lines.push(`    wrong for: ${i.wrong_for}`);
+      lines.push(`    ${i.source_url}`);
+    }
+  }
 
   lines.push('', 'MACRO');
   for (const m of brief.macro_developments) {

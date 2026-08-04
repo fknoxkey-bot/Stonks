@@ -64,6 +64,15 @@ export const nearTermSchema = z.object({
 
 export const cashSchema = z.object({ amount: z.coerce.number().nonnegative() });
 
+const longEnough = (field: string) =>
+  z
+    .string()
+    .trim()
+    .min(
+      GAP_MIN_FIELD_LENGTH,
+      `${field} must be a real argument, not a phrase — at least ${GAP_MIN_FIELD_LENGTH} characters.`,
+    );
+
 /* ------------------------------------------------------------------ *
  * weekly brief — the model's output shape
  * ------------------------------------------------------------------ */
@@ -99,12 +108,38 @@ export const consensusPointSchema = z.object({
   source_url: z.string().url(),
 });
 
+/** A holding that moved, with the model's explanation and a citation. */
+export const priceMoveSchema = z.object({
+  ticker: z.string().min(1),
+  pct_change: z.number(),
+  explanation: z.string().min(1),
+  source_url: z.string().url('A price move needs a source explaining it.'),
+});
+
+/**
+ * An idea surfaced alongside the brief. Same three-sided requirement as gap
+ * analysis: if it cannot argue against itself, it does not get rendered.
+ */
+export const ideaSchema = z.object({
+  instrument: z.string().min(1),
+  ticker: z.string().min(1),
+  why_now: z.string().min(1),
+  case_for: longEnough('case_for'),
+  case_against: longEnough('case_against'),
+  wrong_for: longEnough('wrong_for'),
+  source_url: z.string().url(),
+});
+
 export const weeklyBriefSchema = z.object({
   summary: z.string().min(1),
   macro_developments: z.array(macroDevelopmentSchema),
   invalidation_checks: z.array(invalidationCheckSchema),
   already_consensus: z.array(consensusPointSchema),
   questions_for_me: z.array(z.string().min(1)).min(3).max(3),
+  // Defaulted so briefs generated before these sections existed still parse
+  // and still render in the archive.
+  price_moves: z.array(priceMoveSchema).default([]),
+  ideas: z.array(ideaSchema).max(3).default([]),
 });
 
 export type WeeklyBrief = z.infer<typeof weeklyBriefSchema>;
@@ -112,15 +147,6 @@ export type WeeklyBrief = z.infer<typeof weeklyBriefSchema>;
 /* ------------------------------------------------------------------ *
  * gap analysis
  * ------------------------------------------------------------------ */
-
-const longEnough = (field: string) =>
-  z
-    .string()
-    .trim()
-    .min(
-      GAP_MIN_FIELD_LENGTH,
-      `${field} must be a real argument, not a phrase — at least ${GAP_MIN_FIELD_LENGTH} characters.`,
-    );
 
 /**
  * A candidate that cannot argue against itself is not rendered. `wrong_for`

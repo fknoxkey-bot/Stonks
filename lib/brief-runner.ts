@@ -1,4 +1,5 @@
-import { buildPortfolioState, insertBrief } from './queries';
+import { buildMovers, buildPortfolioState, insertBrief } from './queries';
+import { MOVE_ALERT_PCT, MOVE_WINDOW_DAYS } from './constants';
 import { generateGapAnalysis, generateWeeklyBrief, isAnthropicConfigured } from './anthropic';
 import type { BriefKind, BriefRow } from './types';
 
@@ -25,7 +26,9 @@ export async function runBrief(kind: BriefKind): Promise<RunOutcome> {
 
   const state = buildPortfolioState();
   const result =
-    kind === 'weekly' ? await generateWeeklyBrief(state) : await generateGapAnalysis(state);
+    kind === 'weekly'
+      ? await generateWeeklyBrief(state, buildMovers(state, MOVE_WINDOW_DAYS, MOVE_ALERT_PCT))
+      : await generateGapAnalysis(state);
 
   const brief = insertBrief({
     kind,

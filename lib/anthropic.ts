@@ -18,7 +18,15 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { PortfolioState } from './types';
 import { hasEnv, requireEnv } from './env';
 import { TIER_LABEL } from './types';
-import { ANTHROPIC_EFFORT, ANTHROPIC_MODEL, GAP_MIN_FIELD_LENGTH, RULES } from './constants';
+import {
+  ANTHROPIC_EFFORT,
+  ANTHROPIC_MODEL,
+  GAP_MIN_FIELD_LENGTH,
+  MAX_IDEAS_PER_BRIEF,
+  MOVE_ALERT_PCT,
+  RULES,
+} from './constants';
+import { describeMovers, type Mover } from './movers';
 import {
   drawdownPct,
   effectiveValue,
@@ -356,13 +364,38 @@ Schema:
     "evidence": [{ "claim": string, "source_url": string, "source_title": string }]
   }],
   "already_consensus": [{ "point": string, "why_consensus": string, "source_url": string }],
-  "questions_for_me": [string, string, string]
-}`;
+  "questions_for_me": [string, string, string],
+  "price_moves": [{
+    "ticker": string,
+    "pct_change": number,
+    "explanation": string,
+    "source_url": string
+  }],
+  "ideas": [{
+    "instrument": string,
+    "ticker": string,
+    "why_now": string,
+    "case_for": string,
+    "case_against": string,
+    "wrong_for": string,
+    "source_url": string
+  }]
+}
+
+The ideas array is the one place you may name something the user does not own.
+It is a research list, never a shopping list: no ranking, no ordering that
+implies preference, no conviction levels, and every entry must name a real
+investor for whom it would be a mistake. An idea you cannot argue against is an
+idea you do not understand well enough to raise.`;
 
 export async function generateWeeklyBrief(
   state: PortfolioState,
+  movers: Mover[] = [],
 ): Promise<GenerationResult<WeeklyBrief>> {
   const prompt = `${describePortfolio(state)}
+
+## Holdings that moved at least ${MOVE_ALERT_PCT}% this week
+${describeMovers(movers)}
 
 ---
 
@@ -382,6 +415,21 @@ condition rather than for general news about the company.
 **already_consensus** — which of your own points above are already widely held
 and therefore offer no edge. Be blunt. If most of the brief is consensus, say
 so; that is useful information, not an admission of failure.
+
+**price_moves** — one entry for each holding listed as having moved above, and
+only those. Search for what actually caused the move and cite it. If you cannot
+find a cause, say so plainly in the explanation rather than inventing a
+narrative — "no specific news found; moved with the sector" is a valid and
+useful answer. Omit any holding not in that list; do not report moves you were
+not given.
+
+**ideas** — at most ${MAX_IDEAS_PER_BRIEF}, and zero is a perfectly good
+answer. Things worth *researching*, given what this portfolio is missing and
+what happened this week. Every one needs why_now, plus case_for, case_against
+and wrong_for at ${GAP_MIN_FIELD_LENGTH}+ characters each. Do not rank them, do
+not order them by preference, and do not tell the user to buy anything. If
+nothing this week genuinely warrants a new idea, return an empty array — a
+short honest list beats a padded one.
 
 **questions_for_me** — exactly three questions the user should answer for
 themselves. Not questions for you to answer. Questions that a person holding

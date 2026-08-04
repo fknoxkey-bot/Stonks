@@ -39,13 +39,36 @@ const brief: WeeklyBrief = {
     },
   ],
   questions_for_me: ['First?', 'Second?', 'Third?'],
+  price_moves: [
+    {
+      ticker: 'ASML',
+      pct_change: -8.4,
+      explanation: 'Fell with the semi-equipment complex after a peer cut guidance.',
+      source_url: 'https://example.com/move',
+    },
+  ],
+  ideas: [
+    {
+      instrument: 'Example Short Treasury ETF',
+      ticker: 'EXST',
+      why_now: 'Your roof money is due in four months and sits in equities.',
+      case_for: 'Very short duration means the price barely moves, so money you need on a date stays roughly intact.',
+      case_against: 'Yields little after inflation, and locks up cash that could compound elsewhere for years.',
+      wrong_for: 'Anyone with no near-term spending commitment, who would simply be giving up long-run returns.',
+      source_url: 'https://example.com/fund',
+    },
+  ],
 };
 
 describe('renderBriefEmail', () => {
   const html = renderBriefEmail(brief, '2026-04-05T18:00:00.000Z', 'https://stonks.local');
 
   it('leads with the invalidation checks, before macro', () => {
-    expect(html.indexOf('Invalidation checks')).toBeLessThan(html.indexOf('Macro developments'));
+    expect(html).toContain('prove you wrong');
+    expect(html).toContain('What happened in the wider market');
+    expect(html.indexOf('prove you wrong')).toBeLessThan(
+      html.indexOf('What happened in the wider market'),
+    );
   });
 
   it('renders every check with its status and quoted condition', () => {
@@ -64,6 +87,26 @@ describe('renderBriefEmail', () => {
     expect(html).toContain('href="https://www.federalreserve.gov/releases/x"');
     expect(html).toContain('federalreserve.gov');
     expect(html).toContain('href="https://www.asml.com/ir"');
+  });
+
+  it('renders price moves with direction and a source', () => {
+    expect(html).toContain('ASML');
+    expect(html).toContain('8.4%');
+    expect(html).toContain('&#9660;'); // down arrow
+    expect(html).toContain('https://example.com/move');
+  });
+
+  it('renders ideas with all three sides, and says they are not ranked', () => {
+    expect(html).toContain('EXST');
+    expect(html).toContain('not ranked');
+    expect(html).toContain('For:');
+    expect(html).toContain('Against:');
+    expect(html).toContain('Wrong for:');
+  });
+
+  it('puts what-moved and the invalidation checks ahead of any idea', () => {
+    expect(html.indexOf('What moved')).toBeLessThan(html.indexOf('Worth researching'));
+    expect(html.indexOf('prove you wrong')).toBeLessThan(html.indexOf('Worth researching'));
   });
 
   it('carries the no-recommendation and no-brokerage footer', () => {
@@ -100,6 +143,8 @@ describe('renderBriefEmail', () => {
       macro_developments: [],
       invalidation_checks: [],
       already_consensus: [],
+      price_moves: [],
+      ideas: [],
     };
     const out = renderBriefEmail(empty, '2026-04-05T18:00:00.000Z', 'https://stonks.local');
     expect(out).toContain('No positions to check.');
@@ -111,10 +156,31 @@ describe('renderBriefText', () => {
   const text = renderBriefText(brief, '2026-04-05T18:00:00.000Z');
 
   it('carries every section', () => {
+    expect(text).toContain('WHAT MOVED');
     expect(text).toContain('INVALIDATION CHECKS');
     expect(text).toContain('THREE QUESTIONS');
+    expect(text).toContain('WORTH RESEARCHING');
     expect(text).toContain('MACRO');
     expect(text).toContain('ALREADY CONSENSUS');
+  });
+
+  it('signs the move and keeps the checks ahead of any idea', () => {
+    expect(text).toContain('ASML -8.4%');
+    expect(text.indexOf('INVALIDATION CHECKS')).toBeLessThan(text.indexOf('WORTH RESEARCHING'));
+  });
+
+  it('never states an idea without all three sides against it', () => {
+    expect(text).toContain('for: Very short duration');
+    expect(text).toContain('against: Yields little after inflation');
+    expect(text).toContain('wrong for: Anyone with no near-term spending commitment');
+    expect(text).toContain('not ranked, not advice');
+  });
+
+  it('omits the optional sections entirely when there is nothing to say', () => {
+    const bare = renderBriefText({ ...brief, price_moves: [], ideas: [] }, '2026-04-05T18:00:00.000Z');
+    expect(bare).not.toContain('WHAT MOVED');
+    expect(bare).not.toContain('WORTH RESEARCHING');
+    expect(bare).toContain('INVALIDATION CHECKS');
   });
 
   it('numbers the questions', () => {
