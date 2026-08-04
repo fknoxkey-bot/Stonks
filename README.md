@@ -19,6 +19,19 @@ automatically, and runs a weekly review that surfaces what needs a decision.
 
 ## Setup
 
+### The short way, on a Mac
+
+Double-click **`Start Stonks.command`** in this folder. It installs what's
+missing, builds the database, starts the app and opens your browser. Nothing to
+type. Leave the window it opens alone while you use the app; close it to stop.
+
+macOS blocks downloaded scripts the first time, so on that first double-click
+you'll get *"cannot be opened because it is from an unidentified developer."*
+**Right-click the file → Open → Open** instead, once. After that, double-click
+works normally.
+
+### The command-line way
+
 You need **Node 20 or newer** — check with `node -v`; if that errors or shows
 something lower, get the LTS installer from [nodejs.org](https://nodejs.org).
 
